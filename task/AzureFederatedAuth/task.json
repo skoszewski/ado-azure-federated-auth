@@ -1,0 +1,48 @@
+{
+  "$schema": "https://raw.githubusercontent.com/Microsoft/azure-pipelines-task-lib/master/tasks.schema.json",
+  "id": "11c532b8-f2bd-45f8-ac94-3b7e44608cc4",
+  "name": "AzureFederatedAuth",
+  "friendlyName": "Azure Federated Auth",
+  "description": "Gets OIDC token and sets ARM vars (optionally GIT_ACCESS_TOKEN).",
+  "helpMarkDown": "For details, see: https://github.com/skoszewski/ado-azure-federated-auth.git",
+  "category": "Deploy",
+  "author": "Slawomir Koszewski",
+  "version": {
+    "Major": 1,
+    "Minor": 0,
+    "Patch": 0
+  },
+  "instanceNameFormat": "Configure federated auth: $(serviceConnectionARM)",
+  "inputs": [
+    {
+      "name": "serviceConnectionARM",
+      "type": "connectedService:AzureRM",
+      "label": "Azure Resource Manager service connection",
+      "defaultValue": "",
+      "required": true,
+      "helpMarkDown": "AzureRM service connection used to request the OIDC token. Requires System.AccessToken to be available to the job."
+    },
+    {
+      "name": "setGitAccessToken",
+      "type": "boolean",
+      "label": "Set GIT_ACCESS_TOKEN for Azure DevOps Git",
+      "defaultValue": "false",
+      "required": false,
+      "helpMarkDown": "Exchange OIDC for Azure DevOps scope and set secret GIT_ACCESS_TOKEN."
+    },
+    {
+      "name": "printTokenHashes",
+      "type": "boolean",
+      "label": "Print SHA256 token hashes to logs",
+      "defaultValue": "false",
+      "required": false,
+      "helpMarkDown": "When enabled, prints SHA256 hashes of ARM_OIDC_TOKEN and GIT_ACCESS_TOKEN (if requested)."
+    }
+  ],
+  "execution": {
+    "Node20_1": {
+      "target": "dist/AzureFederatedAuth/src/index.js"
+    }
+  },
+  "minimumAgentVersion": "3.225.0"
+}

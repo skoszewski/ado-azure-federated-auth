@@ -1,0 +1,50 @@
+{
+  "manifestVersion": 1,
+  "id": "azure-federated-auth",
+  "name": "Azure Federated Auth",
+  "version": "1.0.0",
+  "publisher": "skoszewski-lab",
+  "targets": [
+    {
+      "id": "Microsoft.VisualStudio.Services"
+    }
+  ],
+  "description": "Azure DevOps task for AzureRM workload identity federation token setup.",
+  "content": {
+    "details": {
+      "path": "overview.md"
+    }
+  },
+  "categories": [
+    "Azure Pipelines"
+  ],
+  "public": false,
+  "icons": {
+    "default": "images/icon.png"
+  },
+  "files": [
+    {
+      "path": "task/AzureFederatedAuth"
+    },
+    {
+      "path": "images",
+      "addressable": true
+    },
+    {
+      "path": "overview.md",
+      "addressable": true
+    }
+  ],
+  "contributions": [
+    {
+      "id": "c5832ba7-adfc-4723-8bc6-ab6287c78b3d",
+      "type": "ms.vss-distributed-task.task",
+      "targets": [
+        "ms.vss-distributed-task.tasks"
+      ],
+      "properties": {
+        "name": "task/AzureFederatedAuth"
+      }
+    }
+  ]
+}
