@@ -47,7 +47,7 @@ async function run(): Promise<void> {
       let gitOidcToken = armToken;
       let gitMetadata = armMetadata;
 
-      if (gitEndpointId && gitEndpointId !== armEndpointId) {
+      if (gitEndpointId !== undefined && gitEndpointId.length > 0 && gitEndpointId !== armEndpointId) {
         console.log('Requesting OIDC token for Git service connection...');
         const gitRequestUrl = buildOidcUrl(oidcBaseUrl, gitEndpointId);
         gitOidcToken = await requestOidcToken(gitRequestUrl, accessToken);

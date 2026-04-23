@@ -10,7 +10,7 @@
   "version": {
     "Major": 1,
     "Minor": 1,
-    "Patch": 0
+    "Patch": 1
   },
   "instanceNameFormat": "Configure federated auth: $(serviceConnectionARM)",
   "inputs": [
@@ -34,7 +34,6 @@
       "name": "serviceConnectionGit",
       "type": "connectedService:AzureRM",
       "label": "Azure Resource Manager service connection (Git)",
-      "defaultValue": "",
       "required": false,
       "visibleRule": "setGitAccessToken = true",
       "helpMarkDown": "Optional AzureRM service connection used to acquire GIT_ACCESS_TOKEN. If not specified, the ARM service connection is reused."

@@ -2,7 +2,7 @@
   "manifestVersion": 1,
   "id": "azure-federated-auth",
   "name": "Azure Federated Auth",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "publisher": "skoszewski-lab",
   "targets": [
     {
