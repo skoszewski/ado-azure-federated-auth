@@ -6,8 +6,7 @@ It can be directly used by Terraform and other tools supporting OIDC-based authe
 ## Inputs
 
 - `serviceConnectionARM`: AzureRM service connection used for ARM OIDC (required)
-- `setGitAccessToken`: Export Git access token as `GIT_ACCESS_TOKEN` variable (optional)
-- `serviceConnectionGit`: AzureRM service connection used to acquire the Git access token (optional; defaults to `serviceConnectionARM`)
+- `serviceConnectionGit`: AzureRM service connection used to acquire the Git access token; when set, `GIT_ACCESS_TOKEN` is exported (optional)
 - `printTokenHashes`: Print SHA256 hashes of issued tokens to the log (optional)
 
 ## Exports
