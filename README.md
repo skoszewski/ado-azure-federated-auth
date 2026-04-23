@@ -8,8 +8,10 @@ The AzureFederatedAuth task requests an OIDC token for a selected AzureRM servic
 
 ### Inputs
 
-- `azureSubscription`: AzureRM service connection (required)
-- `gitAccessToken`: Export Git access token as `GIT_ACCESS_TOKEN` variable (optional)
+- `serviceConnectionARM`: AzureRM service connection used for ARM OIDC (required)
+- `setGitAccessToken`: Export Git access token as `GIT_ACCESS_TOKEN` variable (optional)
+- `serviceConnectionGit`: AzureRM service connection used to acquire the Git access token (optional; defaults to `serviceConnectionARM`)
+- `printTokenHashes`: Print SHA256 hashes of issued tokens to the log (optional)
 
 ### Exports
 
