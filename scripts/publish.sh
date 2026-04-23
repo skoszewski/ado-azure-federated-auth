@@ -1,4 +1,11 @@
 #!/usr/bin/env bash
+# AZDO_PAT requirements (created in Azure DevOps user settings > Personal Access Tokens):
+#   - Scopes: Marketplace > Manage (or at minimum Publish, vso.gallery_publish) —
+#     covers publishing the extension and sharing it via --share-with.
+#   - Organization (dropdown at top of the New Token dialog): any value works
+#     (All accessible organizations, or a specific one) — Marketplace scopes
+#     grant access to marketplace.visualstudio.com independently of this choice.
+#   - Created under the publisher identity that owns PUBLISHER_ID.
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
