@@ -11,8 +11,9 @@ const AZDO_APP_SCOPE = '499b84ac-1321-427f-aa17-267ca6975798/.default';
 
 async function run(): Promise<void> {
   try {
-    const endpointId = tl.getInputRequired('serviceConnectionARM');
+    const armEndpointId = tl.getInputRequired('serviceConnectionARM');
     const setGitAccessToken = tl.getBoolInput('setGitAccessToken', false);
+    const gitEndpointId = tl.getInput('serviceConnectionGit', false);
     const printTokenHashes = tl.getBoolInput('printTokenHashes', false);
 
     const oidcBaseUrl = tl.getVariable('System.OidcRequestUri');
@@ -28,23 +29,33 @@ async function run(): Promise<void> {
 
     console.log('Requesting OIDC token for ARM authentication...');
 
-    const requestUrl = buildOidcUrl(oidcBaseUrl, endpointId);
-    const token = await requestOidcToken(requestUrl, accessToken);
-    const metadata = getServiceConnectionMetadata(endpointId);
+    const armRequestUrl = buildOidcUrl(oidcBaseUrl, armEndpointId);
+    const armToken = await requestOidcToken(armRequestUrl, accessToken);
+    const armMetadata = getServiceConnectionMetadata(armEndpointId);
 
-    tl.setVariable('ARM_OIDC_TOKEN', token, true);
-    tl.setVariable('ARM_TENANT_ID', metadata.tenantId);
-    tl.setVariable('ARM_CLIENT_ID', metadata.clientId);
+    tl.setVariable('ARM_OIDC_TOKEN', armToken, true);
+    tl.setVariable('ARM_TENANT_ID', armMetadata.tenantId);
+    tl.setVariable('ARM_CLIENT_ID', armMetadata.clientId);
 
     console.log('Successfully retrieved OIDC token.');
     if (printTokenHashes) {
-      const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
-      console.log(`OIDC Token SHA256: ${tokenHash}`);
+      const armTokenHash = crypto.createHash('sha256').update(armToken).digest('hex');
+      console.log(`OIDC Token SHA256: ${armTokenHash}`);
     }
 
     if (setGitAccessToken) {
+      let gitOidcToken = armToken;
+      let gitMetadata = armMetadata;
+
+      if (gitEndpointId && gitEndpointId !== armEndpointId) {
+        console.log('Requesting OIDC token for Git service connection...');
+        const gitRequestUrl = buildOidcUrl(oidcBaseUrl, gitEndpointId);
+        gitOidcToken = await requestOidcToken(gitRequestUrl, accessToken);
+        gitMetadata = getServiceConnectionMetadata(gitEndpointId);
+      }
+
       console.log('Exchanging OIDC token for Azure DevOps scoped Git access token...');
-      const gitToken = await exchangeOidcForScopedToken(metadata.tenantId, metadata.clientId, token, AZDO_APP_SCOPE);
+      const gitToken = await exchangeOidcForScopedToken(gitMetadata.tenantId, gitMetadata.clientId, gitOidcToken, AZDO_APP_SCOPE);
       tl.setVariable('GIT_ACCESS_TOKEN', gitToken, true);
       if (printTokenHashes) {
         const gitTokenHash = crypto.createHash('sha256').update(gitToken).digest('hex');
