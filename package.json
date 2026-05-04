@@ -16,9 +16,7 @@
   },
   "devDependencies": {
     "@types/node": "^24.0.0",
+    "semver": "^7.7.4",
     "typescript": "6.0.2"
-  },
-  "dependencies": {
-    "azure-pipelines-task-lib": "^5.2.10"
   }
 }
