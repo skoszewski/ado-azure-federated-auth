@@ -14,10 +14,14 @@ set -a
 source "$ROOT_DIR/.env"
 set +a
 
+# Read the PAT and the organization URL to shared the exitension with from environment variables.
 if [[ -z "${AZDO_PAT:-}" ]]; then
   echo "AZDO_PAT is not set."
   exit 1
 fi
+
+# Read the publisher ID, extension ID and version from the vss-extension.json file.
+eval $(jq -r '"EXTENSION_ID=\(.id) EXTENSION_VERSION=\(.version) PUBLISHER_ID=\(.publisher)"' vss-extension.json)
 
 if [[ -z "${PUBLISHER_ID:-}" || -z "${EXTENSION_ID:-}" || -z "${EXTENSION_VERSION:-}" || -z "${ORG:-}" ]]; then
   echo "PUBLISHER_ID, EXTENSION_ID, EXTENSION_VERSION and ORG must be set in .env"
