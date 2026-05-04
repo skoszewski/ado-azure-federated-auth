@@ -26,7 +26,7 @@ else
 fi
 
 rm -rf "$TASK_DIR/dist" "$TASK_DIR/node_modules"
-npm install --prefix "$TASK_DIR" --no-audit --fund=false --no-package-lock --no-save azure-pipelines-task-lib@5.2.8
+npm install --prefix "$TASK_DIR" --no-audit --fund=false --no-package-lock
 
 npx tsc -p "$ROOT_DIR/tsconfig.json"
 
