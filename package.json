@@ -1,6 +1,6 @@
 {
   "name": "ado-azure-federated-auth",
-  "version": "1.1.3",
+  "version": "2.0.0",
   "private": true,
   "type": "module",
   "description": "Standalone Azure DevOps extension for AzureFederatedAuth task.",
@@ -11,12 +11,14 @@
     "npm": ">=10"
   },
   "scripts": {
-    "build": "./scripts/build.sh",
-    "clean": "rm -rf build task/AzureFederatedAuth/dist task/AzureFederatedAuth/node_modules"
+    "build": "node scripts/build.mjs",
+    "clean": "node scripts/clean.mjs",
+    "bump-version": "node scripts/bump-version.mjs",
+    "publish-extension": "node scripts/publish.mjs"
   },
   "devDependencies": {
     "@types/node": "^24.0.0",
     "semver": "^7.7.4",
-    "typescript": "6.0.2"
+    "typescript": "^7.0.2"
   }
 }

@@ -1,0 +1,43 @@
+
+> ado-azure-federated-auth@2.0.0 clean
+> node scripts/clean.mjs
+
+Removed /Users/slawek/src/ado-azure-federated-auth/build
+Removed /Users/slawek/src/ado-azure-federated-auth/task/AzureFederatedAuth/AzureFederatedAuthV1/dist
+Removed /Users/slawek/src/ado-azure-federated-auth/task/AzureFederatedAuth/AzureFederatedAuthV1/node_modules
+Removed /Users/slawek/src/ado-azure-federated-auth/task/AzureFederatedAuth/AzureFederatedAuthV2/dist
+Removed /Users/slawek/src/ado-azure-federated-auth/task/AzureFederatedAuth/AzureFederatedAuthV2/node_modules
+
+> ado-azure-federated-auth@2.0.0 build
+> node scripts/build.mjs
+
+> npm ci
+
+added 4 packages, and audited 5 packages in 458ms
+
+found 0 vulnerabilities
+> npm install --prefix /Users/slawek/src/ado-azure-federated-auth/task/AzureFederatedAuth/AzureFederatedAuthV1 --no-audit --fund=false
+npm warn deprecated q@1.5.1: You or someone you depend on is using Q, the JavaScript Promise library that gave JavaScript developers strong feelings about promises. They can almost certainly migrate to the native JavaScript promise now. Thank you literally everyone for joining me in this bet against the odds. Be excellent to each other.
+npm warn deprecated
+npm warn deprecated (For a CapTP with native promises, see @endo/eventual-send and @endo/captp)
+npm warn deprecated uuid@3.4.0: uuid@10 and below is no longer supported.  For ESM codebases, update to uuid@latest.  For CommonJS codebases, use uuid@11 (but be aware this version will likely be deprecated in 2028).
+
+added 55 packages in 173ms
+> npm install --prefix /Users/slawek/src/ado-azure-federated-auth/task/AzureFederatedAuth/AzureFederatedAuthV2 --no-audit --fund=false
+npm warn deprecated q@1.5.1: You or someone you depend on is using Q, the JavaScript Promise library that gave JavaScript developers strong feelings about promises. They can almost certainly migrate to the native JavaScript promise now. Thank you literally everyone for joining me in this bet against the odds. Be excellent to each other.
+npm warn deprecated
+npm warn deprecated (For a CapTP with native promises, see @endo/eventual-send and @endo/captp)
+npm warn deprecated uuid@3.4.0: uuid@10 and below is no longer supported.  For ESM codebases, update to uuid@latest.  For CommonJS codebases, use uuid@11 (but be aware this version will likely be deprecated in 2028).
+
+added 55 packages in 162ms
+> npx tsc -p /Users/slawek/src/ado-azure-federated-auth/tsconfig.v1.json
+> npx tsc -p /Users/slawek/src/ado-azure-federated-auth/tsconfig.v2.json
+> npx tfx-cli extension create --manifest-globs vss-extension.json --output-path /Users/slawek/src/ado-azure-federated-auth/build
+[37m[90mTFS Cross Platform Command Line Interface v0.23.4[37m[39m
+[37m[90mCopyright Microsoft Corporation[37m[39m
+[37m[32m[37m[39m
+[37m[32m=== Completed operation: create extension ===[37m[39m
+[37m - VSIX: /Users/slawek/src/ado-azure-federated-auth/build/skoszewski-lab.azure-federated-auth-2.0.0.vsix[39m
+[37m - Extension ID: azure-federated-auth[39m
+[37m - Extension Version: 2.0.0[39m
+[37m - Publisher: skoszewski-lab[39m

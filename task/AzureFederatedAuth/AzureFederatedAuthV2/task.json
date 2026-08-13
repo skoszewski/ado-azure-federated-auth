@@ -1,0 +1,126 @@
+{
+  "$schema": "https://raw.githubusercontent.com/Microsoft/azure-pipelines-task-lib/master/tasks.schema.json",
+  "id": "11c532b8-f2bd-45f8-ac94-3b7e44608cc4",
+  "name": "AzureFederatedAuth",
+  "friendlyName": "Azure Federated Auth",
+  "description": "Gets OIDC token and sets ARM vars (optionally GIT_ACCESS_TOKEN and Google Cloud access token vars).",
+  "helpMarkDown": "For details, see: https://github.com/skoszewski/ado-azure-federated-auth.git",
+  "category": "Deploy",
+  "author": "Slawomir Koszewski",
+  "version": {
+    "Major": 2,
+    "Minor": 0,
+    "Patch": 0
+  },
+  "instanceNameFormat": "Configure federated auth: $(serviceConnectionARM)",
+  "groups": [
+    {
+      "name": "gcp",
+      "displayName": "Google Cloud",
+      "isExpanded": false
+    }
+  ],
+  "inputs": [
+    {
+      "name": "serviceConnectionARM",
+      "type": "connectedService:AzureRM",
+      "label": "Azure Resource Manager service connection",
+      "defaultValue": "",
+      "required": true,
+      "helpMarkDown": "AzureRM service connection used to request the OIDC token. Requires System.AccessToken to be available to the job."
+    },
+    {
+      "name": "serviceConnectionGit",
+      "type": "connectedService:AzureRM",
+      "label": "Azure Resource Manager service connection (Git)",
+      "required": false,
+      "helpMarkDown": "Optional AzureRM service connection used to acquire GIT_ACCESS_TOKEN. When specified, an Azure DevOps scoped Git access token is exchanged and exported as the secret GIT_ACCESS_TOKEN pipeline variable."
+    },
+    {
+      "name": "printTokenHashes",
+      "type": "boolean",
+      "label": "Print SHA256 token hashes to logs",
+      "defaultValue": "false",
+      "required": false,
+      "helpMarkDown": "When enabled, prints SHA256 hashes of ARM_OIDC_TOKEN, GIT_ACCESS_TOKEN and the Google Cloud access token (if requested)."
+    },
+    {
+      "name": "gcpWorkloadIdentityProvider",
+      "type": "string",
+      "label": "Workload identity provider",
+      "defaultValue": "",
+      "required": false,
+      "groupName": "gcp",
+      "helpMarkDown": "Full resource name of the Google Cloud workload identity pool provider: `projects/<PROJECT_NUMBER>/locations/global/workloadIdentityPools/<POOL>/providers/<PROVIDER>`, optionally prefixed with `//iam.googleapis.com/`. Use the project **number**, not the project ID. Setting this input enables the Google Cloud token exchange; leaving it empty skips it."
+    },
+    {
+      "name": "gcpServiceAccountEmail",
+      "type": "string",
+      "label": "Service account to impersonate",
+      "defaultValue": "",
+      "required": false,
+      "groupName": "gcp",
+      "helpMarkDown": "Optional service account email. When set, the federated token is used to impersonate this service account and the impersonated access token is exported. Requires roles/iam.workloadIdentityUser on the service account. When empty, the federated token is exported directly (direct resource access)."
+    },
+    {
+      "name": "gcpProjectId",
+      "type": "string",
+      "label": "Project ID",
+      "defaultValue": "",
+      "required": false,
+      "groupName": "gcp",
+      "helpMarkDown": "Optional Google Cloud project ID. When set, GOOGLE_CLOUD_PROJECT and CLOUDSDK_CORE_PROJECT are exported, which the Terraform google provider and gcloud read as the default project."
+    },
+    {
+      "name": "gcpRegion",
+      "type": "string",
+      "label": "Region",
+      "defaultValue": "",
+      "required": false,
+      "groupName": "gcp",
+      "helpMarkDown": "Optional default region. When set, GOOGLE_REGION is exported, which the Terraform google provider reads as its default region."
+    },
+    {
+      "name": "gcpScopes",
+      "type": "string",
+      "label": "OAuth scopes",
+      "defaultValue": "https://www.googleapis.com/auth/cloud-platform",
+      "required": false,
+      "groupName": "gcp",
+      "helpMarkDown": "Whitespace or comma separated OAuth scopes for the issued access token. Defaults to https://www.googleapis.com/auth/cloud-platform."
+    },
+    {
+      "name": "gcpTokenLifetimeSeconds",
+      "type": "string",
+      "label": "Token lifetime (seconds)",
+      "defaultValue": "",
+      "required": false,
+      "groupName": "gcp",
+      "helpMarkDown": "Optional lifetime of the impersonated access token, in seconds. Applies only when a service account is impersonated. Leave empty for the API default of 3600. Values above 3600 require the service account to be covered by the constraints/iam.allowServiceAccountCredentialLifetimeExtension organization policy (maximum 43200)."
+    },
+    {
+      "name": "gcpStsTokenUrl",
+      "type": "string",
+      "label": "Security Token Service URL",
+      "defaultValue": "https://sts.googleapis.com/v1/token",
+      "required": false,
+      "groupName": "gcp",
+      "helpMarkDown": "Security Token Service endpoint used for the token exchange. Change this only to target a regional endpoint, for example https://sts.europe-west1.rep.googleapis.com/v1/token."
+    },
+    {
+      "name": "printOidcClaims",
+      "type": "boolean",
+      "label": "Print OIDC token claims to logs",
+      "defaultValue": "false",
+      "required": false,
+      "groupName": "gcp",
+      "helpMarkDown": "When enabled, prints the iss, aud, sub and exp claims of the Azure DevOps OIDC token. Use these values to configure the Google workload identity provider's --issuer-uri, --allowed-audiences and attribute conditions. No secret material is printed."
+    }
+  ],
+  "execution": {
+    "Node20_1": {
+      "target": "dist/index.js"
+    }
+  },
+  "minimumAgentVersion": "3.225.0"
+}

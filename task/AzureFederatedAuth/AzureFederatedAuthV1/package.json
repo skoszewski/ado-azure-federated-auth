@@ -1,9 +1,9 @@
 {
   "name": "azure-federated-auth-task",
-  "version": "1.1.3",
+  "version": "1.1.4",
   "private": true,
   "type": "module",
-  "description": "Azure DevOps task runtime dependencies for AzureFederatedAuth.",
+  "description": "Azure DevOps task runtime dependencies for AzureFederatedAuth (version 1).",
   "license": "MIT",
   "engines": {
     "node": ">=20"

@@ -1,0 +1,8 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "task/AzureFederatedAuth/AzureFederatedAuthV1/dist",
+    "rootDir": "task/AzureFederatedAuth/AzureFederatedAuthV1/src"
+  },
+  "include": ["task/AzureFederatedAuth/AzureFederatedAuthV1/src/**/*.ts"]
+}
