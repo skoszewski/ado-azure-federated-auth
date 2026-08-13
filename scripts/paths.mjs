@@ -14,11 +14,13 @@ export const CONTRIBUTION_DIR = join(ROOT_DIR, 'task', 'AzureFederatedAuth');
 export const TASK_VERSIONS = [
   {
     name: 'AzureFederatedAuthV1',
+    component: 'task-v1',
     dir: join(CONTRIBUTION_DIR, 'AzureFederatedAuthV1'),
     tsconfig: join(ROOT_DIR, 'tsconfig.v1.json')
   },
   {
     name: 'AzureFederatedAuthV2',
+    component: 'task-v2',
     dir: join(CONTRIBUTION_DIR, 'AzureFederatedAuthV2'),
     tsconfig: join(ROOT_DIR, 'tsconfig.v2.json')
   }

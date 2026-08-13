@@ -105,7 +105,18 @@ Build and package:
 npm run build
 ```
 
-Other scripts: `npm run clean`, `npm run bump-version -- minor`, `npm run publish-extension`.
+Other scripts: `npm run clean`, `npm run publish-extension`, and `npm run bump-version`, which
+takes an optional `--component`/`-c` list and a release type:
+
+```bash
+npm run bump-version -- minor
+npm run bump-version -- -c task-v2 patch
+npm run bump-version -- --component task-v2,extension minor
+```
+
+Components are `extension`, `task-v1` and `task-v2`; omitting the flag bumps all three. The release
+type defaults to `patch`. A task's Major is never changed by the script - it is the task's public
+contract (`AzureFederatedAuth@1`, `@2`) - so a `major` release type gives tasks a minor bump.
 
 ## License
 

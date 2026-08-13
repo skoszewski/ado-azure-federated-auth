@@ -6,15 +6,11 @@
 //     (All accessible organizations, or a specific one) - Marketplace scopes
 //     grant access to marketplace.visualstudio.com independently of this choice.
 //   - Created under the publisher identity that owns PUBLISHER_ID.
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { BUILD_DIR, ROOT_DIR } from './paths.mjs';
 import { run } from './run.mjs';
-
-function fail(message) {
-  console.error(message);
-  process.exit(1);
-}
+import { fail, readJson } from './util.mjs';
 
 const envPath = join(ROOT_DIR, '.env');
 if (existsSync(envPath)) {
@@ -28,7 +24,7 @@ if (!AZDO_PAT) {
 }
 
 // Read the publisher ID, extension ID and version from the vss-extension.json file.
-const manifest = JSON.parse(readFileSync(join(ROOT_DIR, 'vss-extension.json'), 'utf8'));
+const manifest = readJson(join(ROOT_DIR, 'vss-extension.json'));
 const { id: extensionId, version: extensionVersion, publisher: publisherId } = manifest;
 
 if (!publisherId || !extensionId || !extensionVersion || !ORG) {
