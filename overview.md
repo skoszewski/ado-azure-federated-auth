@@ -43,4 +43,4 @@ Version 2, when `gcpWorkloadIdentityProvider` is set:
 - `GOOGLE_CLOUD_PROJECT`, `CLOUDSDK_CORE_PROJECT`, `GOOGLE_REGION`
 - `GCP_ACCESS_TOKEN_EXPIRY`
 
-For Google Cloud setup commands and a Terraform example, see the project README.
+For a Terraform example, see the project README.
