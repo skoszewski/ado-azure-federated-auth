@@ -89,8 +89,10 @@ gcloud iam workload-identity-pools providers create-oidc azure-devops-oidc \
 | Converted to the Microsoft Entra issuer | `https://login.microsoftonline.com/<tenant_id>` |
 
 The Azure DevOps issuer is retired on 2027-07-01, and newly created service connections already
-use the Microsoft Entra issuer. Run the task once with `printOidcClaims: true` and read the `iss`,
-`aud` and `sub` values straight from the log rather than guessing. The subject has the form
+use the Microsoft Entra issuer - see
+[Convert service connections from the Azure DevOps issuer to the Microsoft Entra issuer](https://learn.microsoft.com/azure/devops/pipelines/release/convert-service-connections?view=azure-devops).
+Run the task once with `printOidcClaims: true` and read the `iss`, `aud` and `sub` values straight
+from the log rather than guessing. The subject has the form
 `sc://<org>/<project>/<service-connection-name>`.
 
 ### 2. Grant access
