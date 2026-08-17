@@ -26,4 +26,5 @@ export function remove(target) {
 export function cleanTask(task) {
   remove(join(task.dir, 'dist'));
   remove(join(task.dir, 'node_modules'));
+  remove(join(task.dir, 'icon.png'));
 }
