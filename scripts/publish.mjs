@@ -27,8 +27,12 @@ if (!AZDO_PAT) {
 const manifest = readJson(join(ROOT_DIR, 'vss-extension.json'));
 const { id: extensionId, version: extensionVersion, publisher: publisherId } = manifest;
 
-if (!publisherId || !extensionId || !extensionVersion || !ORG) {
-  fail('PUBLISHER_ID, EXTENSION_ID, EXTENSION_VERSION and ORG must be set in .env');
+if (!publisherId || !extensionId || !extensionVersion) {
+  fail('publisher, id and version must be set in vss-extension.json');
+}
+
+if (!ORG) {
+  fail('ORG is not set.');
 }
 
 const vsixPath = join(BUILD_DIR, `${publisherId}.${extensionId}-${extensionVersion}.vsix`);

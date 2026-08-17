@@ -24,7 +24,6 @@ function childEnv() {
 }
 
 export function run(command, args, options = {}) {
-  console.log(`> ${command} ${args.join(' ')}`);
   execFileSync(command, args, {
     cwd: options.cwd ?? ROOT_DIR,
     stdio: 'inherit',
