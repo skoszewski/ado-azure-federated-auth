@@ -43,15 +43,9 @@ if (!existsSync(vsixPath)) {
 
 console.log(`Publishing to organization: ${ORG}`);
 run('npx', [
-  'tfx-cli',
-  'extension',
-  'publish',
-  '--vsix',
-  vsixPath,
-  '--publisher',
-  publisherId,
-  '--token',
-  AZDO_PAT,
-  '--share-with',
-  ORG
+  'tfx-cli', 'extension', 'publish',
+  '--vsix', vsixPath,
+  '--publisher', publisherId,
+  '--token', AZDO_PAT,
+  '--share-with', ORG
 ]);

@@ -46,11 +46,7 @@ for (const task of TASK_VERSIONS) {
 }
 
 run('npx', [
-  'tfx-cli',
-  'extension',
-  'create',
-  '--manifest-globs',
-  'vss-extension.json',
-  '--output-path',
-  BUILD_DIR
+  'tfx-cli', 'extension', 'create',
+  '--manifest-globs', 'vss-extension.json',
+  '--output-path', BUILD_DIR
 ]);
