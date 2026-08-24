@@ -24,7 +24,7 @@ provider without any stored credentials.
 ### Inputs
 
 - `serviceConnectionARM`: AzureRM service connection used for ARM OIDC (required)
-- `serviceConnectionGit`: AzureRM service connection used to acquire the Git access token; when set, `GIT_ACCESS_TOKEN` is exported (optional)
+- `serviceConnectionGit`: AzureRM service connection used to acquire the Git access token; when set, `GIT_ACCESS_TOKEN` is set (optional)
 - `printTokenHashes`: Print SHA256 hashes of issued tokens to the log (optional)
 
 Google Cloud inputs (version 2 only, all optional):
@@ -33,19 +33,22 @@ Google Cloud inputs (version 2 only, all optional):
   `projects/<PROJECT_NUMBER>/locations/global/workloadIdentityPools/<POOL>/providers/<PROVIDER>`,
   optionally prefixed with `//iam.googleapis.com/`. Use the project **number**, not the project ID.
   Setting this input enables the Google Cloud token exchange; leaving it empty skips it entirely.
-- `gcpServiceAccountEmail`: Service account to impersonate. When empty, the federated token is
-  exported directly (direct resource access).
-- `gcpProjectId`: Default project, exported as `GOOGLE_CLOUD_PROJECT` and `CLOUDSDK_CORE_PROJECT`.
-- `gcpRegion`: Default region, exported as `GOOGLE_REGION`.
+- `gcpServiceAccountEmail`: Service account to impersonate. When empty, the federated token is used
+  directly (direct resource access).
+- `gcpProjectId`: Default project, set as `GOOGLE_CLOUD_PROJECT` and `CLOUDSDK_CORE_PROJECT`.
+- `gcpRegion`: Default region, set as `GOOGLE_REGION`.
 - `gcpScopes`: OAuth scopes, whitespace or comma separated. Defaults to
   `https://www.googleapis.com/auth/cloud-platform`.
+- `gcpAccessTokenVariable`: Name of the secret variable that receives the access token. Defaults to
+  `GOOGLE_OAUTH_ACCESS_TOKEN`. The name may contain letters, digits, `.` and `_`, and must not start
+  with the reserved prefixes `endpoint`, `input`, `secret`, `path` or `securefile`.
 - `gcpTokenLifetimeSeconds`: Lifetime of the impersonated token. Defaults to the API default of
   3600.
 - `gcpStsTokenUrl`: Security Token Service endpoint. Change only to target a regional endpoint.
 - `printOidcClaims`: Print the `iss`, `aud`, `sub` and `exp` claims of the OIDC token. No secret
   material is printed.
 
-### Exports
+### Pipeline variables set
 
 - `ARM_OIDC_TOKEN` (secret)
 - `ARM_TENANT_ID`
@@ -54,12 +57,13 @@ Google Cloud inputs (version 2 only, all optional):
 
 Version 2, when `gcpWorkloadIdentityProvider` is set:
 
-- `GOOGLE_OAUTH_ACCESS_TOKEN` (secret) - read by the Terraform `google` / `google-beta` provider
-  as its `access_token`
-- `CLOUDSDK_AUTH_ACCESS_TOKEN` (secret) - read by `gcloud`
+- the variable named by `gcpAccessTokenVariable` (secret), by default `GOOGLE_OAUTH_ACCESS_TOKEN`.
+  Being secret, it is mapped with `env:` under the name the consuming tool expects:
+  `GOOGLE_OAUTH_ACCESS_TOKEN` for the Terraform `google` / `google-beta` provider,
+  `CLOUDSDK_AUTH_ACCESS_TOKEN` for `gcloud`.
 - `GOOGLE_CLOUD_PROJECT`, `CLOUDSDK_CORE_PROJECT` (when `gcpProjectId` is set)
 - `GOOGLE_REGION` (when `gcpRegion` is set)
-- `GCP_ACCESS_TOKEN_EXPIRY` - ISO 8601 expiry of the exported Google token
+- `GCP_ACCESS_TOKEN_EXPIRY` - ISO 8601 expiry of the Google Cloud access token
 
 A configured Google Cloud workload identity pool, OIDC provider and IAM binding are a prerequisite
 for the version 2 inputs. That setup is out of scope for this repository. `printOidcClaims` prints
@@ -87,7 +91,7 @@ both the `azurerm` and `google` providers with a single AzureRM service connecti
     GOOGLE_OAUTH_ACCESS_TOKEN: $(GOOGLE_OAUTH_ACCESS_TOKEN)
 ```
 
-> **Note**: Exported token variables are secret, so Azure DevOps does not map them into the environment of
+> **Note**: The token variables are secret, so Azure DevOps does not map them into the environment of
 > later steps automatically - pass them explicitly with `env:`, exactly as `ARM_OIDC_TOKEN` already
 > requires. Non-secret variables such as `GOOGLE_CLOUD_PROJECT` and `GOOGLE_REGION` need no mapping,
 > and supply the provider's `project` and `region` when the provider block leaves them unset.

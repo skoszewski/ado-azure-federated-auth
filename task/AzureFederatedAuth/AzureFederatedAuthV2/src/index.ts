@@ -17,6 +17,10 @@ import {
 } from './gcp.js';
 
 const AZDO_APP_SCOPE = '499b84ac-1321-427f-aa17-267ca6975798/.default';
+const DEFAULT_ACCESS_TOKEN_VARIABLE = 'GOOGLE_OAUTH_ACCESS_TOKEN';
+
+// Azure DevOps ignores variables whose name starts with one of these prefixes.
+const RESERVED_VARIABLE_PREFIXES = ['endpoint', 'input', 'secret', 'path', 'securefile'];
 
 function printClaims(oidcToken: string): void {
   const claims = decodeJwtClaims(oidcToken);
@@ -45,11 +49,38 @@ function readLifetimeSeconds(): number | undefined {
   return parsed;
 }
 
+function readAccessTokenVariable(): string {
+  const name = (tl.getInput('gcpAccessTokenVariable', false) ?? '').trim();
+
+  if (name.length === 0) {
+    return DEFAULT_ACCESS_TOKEN_VARIABLE;
+  }
+
+  if (!/^[A-Za-z0-9_.]+$/.test(name)) {
+    throw new Error(
+      `Invalid pipeline variable name in gcpAccessTokenVariable: ${name}. ` +
+        'Names may contain letters, digits, "." and "_" only.'
+    );
+  }
+
+  const lowerName = name.toLowerCase();
+  const reserved = RESERVED_VARIABLE_PREFIXES.find((prefix) => lowerName.startsWith(prefix));
+
+  if (reserved !== undefined) {
+    throw new Error(
+      `Pipeline variable ${name} starts with the Azure DevOps reserved prefix "${reserved}" ` +
+        'and would not be readable by later steps.'
+    );
+  }
+
+  return name;
+}
+
 async function configureGoogleCloud(oidcToken: string, printTokenHashes: boolean): Promise<boolean> {
   const providerResourceName = tl.getInput('gcpWorkloadIdentityProvider', false);
 
   if (providerResourceName === undefined || providerResourceName.trim().length === 0) {
-    console.log('gcpWorkloadIdentityProvider not set - Google Cloud variables will not be exported.');
+    console.log('gcpWorkloadIdentityProvider not set - Google Cloud variables will not be set.');
     return false;
   }
 
@@ -59,6 +90,7 @@ async function configureGoogleCloud(oidcToken: string, printTokenHashes: boolean
   const stsTokenUrl = (tl.getInput('gcpStsTokenUrl', false) ?? '').trim() || DEFAULT_STS_TOKEN_URL;
   const requestedScopes = parseScopes(tl.getInput('gcpScopes', false));
   const lifetimeSeconds = readLifetimeSeconds();
+  const accessTokenVariable = readAccessTokenVariable();
 
   const audience = buildProviderAudience(providerResourceName);
   const impersonate = serviceAccountEmail.length > 0;
@@ -99,8 +131,7 @@ async function configureGoogleCloud(oidcToken: string, printTokenHashes: boolean
     expiry = impersonated.expireTime ?? expiry;
   }
 
-  tl.setVariable('GOOGLE_OAUTH_ACCESS_TOKEN', googleToken, true);
-  tl.setVariable('CLOUDSDK_AUTH_ACCESS_TOKEN', googleToken, true);
+  tl.setVariable(accessTokenVariable, googleToken, true);
 
   if (projectId.length > 0) {
     tl.setVariable('GOOGLE_CLOUD_PROJECT', projectId);
@@ -116,7 +147,7 @@ async function configureGoogleCloud(oidcToken: string, printTokenHashes: boolean
     console.log(`Google Cloud access token expires at ${expiry}.`);
   }
 
-  console.log('Successfully retrieved Google Cloud access token.');
+  console.log(`Successfully retrieved Google Cloud access token, set as ${accessTokenVariable}.`);
   if (printTokenHashes) {
     const googleTokenHash = crypto.createHash('sha256').update(googleToken).digest('hex');
     console.log(`Google Cloud Access Token SHA256: ${googleTokenHash}`);
@@ -159,7 +190,7 @@ async function run(): Promise<void> {
     }
 
     if (gitEndpointId === undefined || gitEndpointId.length === 0) {
-      console.log('serviceConnectionGit not set - GIT_ACCESS_TOKEN will not be exported.');
+      console.log('serviceConnectionGit not set - GIT_ACCESS_TOKEN will not be set.');
     } else {
       console.log('Requesting OIDC token for Git service connection...');
       const gitRequestUrl = buildOidcUrl(oidcBaseUrl, gitEndpointId);

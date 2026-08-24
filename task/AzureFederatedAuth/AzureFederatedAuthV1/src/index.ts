@@ -43,7 +43,7 @@ async function run(): Promise<void> {
     }
 
     if (gitEndpointId === undefined || gitEndpointId.length === 0) {
-      console.log('serviceConnectionGit not set - GIT_ACCESS_TOKEN will not be exported.');
+      console.log('serviceConnectionGit not set - GIT_ACCESS_TOKEN will not be set.');
     } else {
       console.log('Requesting OIDC token for Git service connection...');
       const gitRequestUrl = buildOidcUrl(oidcBaseUrl, gitEndpointId);

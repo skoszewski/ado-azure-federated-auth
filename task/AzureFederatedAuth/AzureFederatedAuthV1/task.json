@@ -27,7 +27,7 @@
       "type": "connectedService:AzureRM",
       "label": "Azure Resource Manager service connection (Git)",
       "required": false,
-      "helpMarkDown": "Optional AzureRM service connection used to acquire GIT_ACCESS_TOKEN. When specified, an Azure DevOps scoped Git access token is exchanged and exported as the secret GIT_ACCESS_TOKEN pipeline variable."
+      "helpMarkDown": "Optional AzureRM service connection used to acquire GIT_ACCESS_TOKEN. When specified, an Azure DevOps scoped Git access token is exchanged and set as the secret GIT_ACCESS_TOKEN pipeline variable."
     },
     {
       "name": "printTokenHashes",

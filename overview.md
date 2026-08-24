@@ -17,7 +17,7 @@ without any stored credentials.
 ## Inputs
 
 - `serviceConnectionARM`: AzureRM service connection used for ARM OIDC (required)
-- `serviceConnectionGit`: AzureRM service connection used to acquire the Git access token; when set, `GIT_ACCESS_TOKEN` is exported (optional)
+- `serviceConnectionGit`: AzureRM service connection used to acquire the Git access token; when set, `GIT_ACCESS_TOKEN` is set (optional)
 - `printTokenHashes`: Print SHA256 hashes of issued tokens to the log (optional)
 
 Google Cloud inputs (version 2 only, all optional):
@@ -27,9 +27,11 @@ Google Cloud inputs (version 2 only, all optional):
 - `gcpServiceAccountEmail`: service account to impersonate
 - `gcpProjectId`, `gcpRegion`: defaults for the Terraform google provider and gcloud
 - `gcpScopes`, `gcpTokenLifetimeSeconds`, `gcpStsTokenUrl`: token exchange tuning
+- `gcpAccessTokenVariable`: name of the secret variable that receives the access token; defaults to
+  `GOOGLE_OAUTH_ACCESS_TOKEN`
 - `printOidcClaims`: print the OIDC token's `iss`, `aud`, `sub` and `exp` claims
 
-## Exports
+## Pipeline variables set
 
 - `ARM_OIDC_TOKEN` (secret)
 - `ARM_TENANT_ID`
@@ -38,8 +40,7 @@ Google Cloud inputs (version 2 only, all optional):
 
 Version 2, when `gcpWorkloadIdentityProvider` is set:
 
-- `GOOGLE_OAUTH_ACCESS_TOKEN` (secret)
-- `CLOUDSDK_AUTH_ACCESS_TOKEN` (secret)
+- the variable named by `gcpAccessTokenVariable` (secret), by default `GOOGLE_OAUTH_ACCESS_TOKEN`
 - `GOOGLE_CLOUD_PROJECT`, `CLOUDSDK_CORE_PROJECT`, `GOOGLE_REGION`
 - `GCP_ACCESS_TOKEN_EXPIRY`
 

@@ -3,7 +3,7 @@
   "id": "11c532b8-f2bd-45f8-ac94-3b7e44608cc4",
   "name": "AzureFederatedAuth",
   "friendlyName": "Azure Federated Auth",
-  "description": "Gets OIDC token and sets ARM vars (optionally GIT_ACCESS_TOKEN and Google Cloud access token vars).",
+  "description": "Gets OIDC token and sets ARM vars (optionally GIT_ACCESS_TOKEN and the Google Cloud access token var).",
   "helpMarkDown": "For details, see: https://github.com/skoszewski/ado-azure-federated-auth.git",
   "category": "Deploy",
   "author": "Slawomir Koszewski",
@@ -34,7 +34,7 @@
       "type": "connectedService:AzureRM",
       "label": "Azure Resource Manager service connection (Git)",
       "required": false,
-      "helpMarkDown": "Optional AzureRM service connection used to acquire GIT_ACCESS_TOKEN. When specified, an Azure DevOps scoped Git access token is exchanged and exported as the secret GIT_ACCESS_TOKEN pipeline variable."
+      "helpMarkDown": "Optional AzureRM service connection used to acquire GIT_ACCESS_TOKEN. When specified, an Azure DevOps scoped Git access token is exchanged and set as the secret GIT_ACCESS_TOKEN pipeline variable."
     },
     {
       "name": "printTokenHashes",
@@ -60,7 +60,7 @@
       "defaultValue": "",
       "required": false,
       "groupName": "gcp",
-      "helpMarkDown": "Optional service account email. When set, the federated token is used to impersonate this service account and the impersonated access token is exported. Requires roles/iam.workloadIdentityUser on the service account. When empty, the federated token is exported directly (direct resource access)."
+      "helpMarkDown": "Optional service account email. When set, the federated token is used to impersonate this service account and the impersonated access token is the one handed to the pipeline. Requires roles/iam.workloadIdentityUser on the service account. When empty, the federated token is used directly (direct resource access)."
     },
     {
       "name": "gcpProjectId",
@@ -69,7 +69,7 @@
       "defaultValue": "",
       "required": false,
       "groupName": "gcp",
-      "helpMarkDown": "Optional Google Cloud project ID. When set, GOOGLE_CLOUD_PROJECT and CLOUDSDK_CORE_PROJECT are exported, which the Terraform google provider and gcloud read as the default project."
+      "helpMarkDown": "Optional Google Cloud project ID. When set, the non-secret variables GOOGLE_CLOUD_PROJECT and CLOUDSDK_CORE_PROJECT are set, which the Terraform google provider and gcloud read as the default project."
     },
     {
       "name": "gcpRegion",
@@ -78,7 +78,7 @@
       "defaultValue": "",
       "required": false,
       "groupName": "gcp",
-      "helpMarkDown": "Optional default region. When set, GOOGLE_REGION is exported, which the Terraform google provider reads as its default region."
+      "helpMarkDown": "Optional default region. When set, the non-secret variable GOOGLE_REGION is set, which the Terraform google provider reads as its default region."
     },
     {
       "name": "gcpScopes",
@@ -88,6 +88,15 @@
       "required": false,
       "groupName": "gcp",
       "helpMarkDown": "Whitespace or comma separated OAuth scopes for the issued access token. Defaults to https://www.googleapis.com/auth/cloud-platform."
+    },
+    {
+      "name": "gcpAccessTokenVariable",
+      "type": "string",
+      "label": "Access token variable name",
+      "defaultValue": "GOOGLE_OAUTH_ACCESS_TOKEN",
+      "required": false,
+      "groupName": "gcp",
+      "helpMarkDown": "Name of the secret pipeline variable that receives the Google Cloud access token. Defaults to GOOGLE_OAUTH_ACCESS_TOKEN. The variable is secret, so later steps map it with `env:` under whatever name the tool expects, for example CLOUDSDK_AUTH_ACCESS_TOKEN for gcloud. The name may contain letters, digits, `.` and `_`, and must not start with the Azure DevOps reserved prefixes endpoint, input, secret, path or securefile."
     },
     {
       "name": "gcpTokenLifetimeSeconds",
