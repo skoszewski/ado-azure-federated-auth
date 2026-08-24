@@ -29,7 +29,7 @@ Google Cloud inputs (version 2 only, all optional):
 - `gcpScopes`, `gcpTokenLifetimeSeconds`, `gcpStsTokenUrl`: token exchange tuning
 - `gcpAccessTokenVariable`: name of the secret variable that receives the access token; defaults to
   `GOOGLE_OAUTH_ACCESS_TOKEN`
-- `printOidcClaims`: print the OIDC token's `iss`, `aud`, `sub` and `exp` claims
+- `printOidcClaims`: print the OIDC token's `aud` and `exp` claims
 
 ## Pipeline variables set
 

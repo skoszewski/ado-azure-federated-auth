@@ -123,7 +123,7 @@
       "defaultValue": "false",
       "required": false,
       "groupName": "gcp",
-      "helpMarkDown": "When enabled, prints the iss, aud, sub and exp claims of the Azure DevOps OIDC token. Use these values to configure the Google workload identity provider's --issuer-uri, --allowed-audiences and attribute conditions. No secret material is printed."
+      "helpMarkDown": "When enabled, prints the aud and exp claims of the Azure DevOps OIDC token. Use the audience to configure the Google workload identity provider's --allowed-audiences."
     }
   ],
   "execution": {

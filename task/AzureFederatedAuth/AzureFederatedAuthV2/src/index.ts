@@ -28,9 +28,7 @@ function printClaims(oidcToken: string): void {
   const expiry = claims.exp === undefined ? undefined : new Date(claims.exp * 1000).toISOString();
 
   console.log('OIDC token claims (use these to configure the Google workload identity provider):');
-  console.log(`  iss (--issuer-uri):       ${claims.iss ?? '<missing>'}`);
   console.log(`  aud (--allowed-audiences): ${audience ?? '<missing>'}`);
-  console.log(`  sub (federation subject):  ${claims.sub ?? '<missing>'}`);
   console.log(`  exp:                       ${expiry ?? '<missing>'}`);
 }
 

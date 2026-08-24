@@ -45,8 +45,7 @@ Google Cloud inputs (version 2 only, all optional):
 - `gcpTokenLifetimeSeconds`: Lifetime of the impersonated token. Defaults to the API default of
   3600.
 - `gcpStsTokenUrl`: Security Token Service endpoint. Change only to target a regional endpoint.
-- `printOidcClaims`: Print the `iss`, `aud`, `sub` and `exp` claims of the OIDC token. No secret
-  material is printed.
+- `printOidcClaims`: Print the `aud` and `exp` claims of the OIDC token.
 
 ### Pipeline variables set
 
@@ -67,7 +66,7 @@ Version 2, when `gcpWorkloadIdentityProvider` is set:
 
 A configured Google Cloud workload identity pool, OIDC provider and IAM binding are a prerequisite
 for the version 2 inputs. That setup is out of scope for this repository. `printOidcClaims` prints
-the `iss`, `aud` and `sub` values the provider has to be configured with.
+the `aud` value the provider's `--allowed-audiences` has to be configured with.
 
 ## Terraform usage
 
