@@ -1,0 +1,11 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "task/AzureScopedAccessToken/AzureScopedAccessTokenV1/dist",
+    "rootDir": "task"
+  },
+  "include": [
+    "task/AzureScopedAccessToken/AzureScopedAccessTokenV1/src/**/*.ts",
+    "task/shared/src/**/*.ts"
+  ]
+}

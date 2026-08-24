@@ -1,0 +1,56 @@
+{
+  "$schema": "https://raw.githubusercontent.com/Microsoft/azure-pipelines-task-lib/master/tasks.schema.json",
+  "id": "66efe09c-5f57-4bf1-b7c3-751908a3245f",
+  "name": "AzureScopedAccessToken",
+  "friendlyName": "Azure Scoped Access Token",
+  "description": "Exchanges a federated OIDC token for a Microsoft Entra access token for the requested resource.",
+  "helpMarkDown": "For details, see: https://github.com/skoszewski/ado-azure-federated-auth.git",
+  "category": "Deploy",
+  "author": "Slawomir Koszewski",
+  "version": {
+    "Major": 1,
+    "Minor": 0,
+    "Patch": 0
+  },
+  "instanceNameFormat": "Get access token: $(scope)",
+  "inputs": [
+    {
+      "name": "serviceConnection",
+      "type": "connectedService:AzureRM",
+      "label": "Azure Resource Manager service connection",
+      "defaultValue": "",
+      "required": true,
+      "helpMarkDown": "AzureRM service connection used to request the OIDC token. Its app registration is the identity the access token is issued to, and it needs access to the requested resource. Requires System.AccessToken to be available to the job."
+    },
+    {
+      "name": "scope",
+      "type": "string",
+      "label": "Scope",
+      "defaultValue": "",
+      "required": true,
+      "helpMarkDown": "Resource scope of the requested access token, for example https://graph.microsoft.com/.default, or 499b84ac-1321-427f-aa17-267ca6975798/.default for Azure DevOps. The client credentials flow issues application scopes, so the value ends with /.default."
+    },
+    {
+      "name": "accessTokenVariable",
+      "type": "string",
+      "label": "Access token variable name",
+      "defaultValue": "",
+      "required": true,
+      "helpMarkDown": "Name of the secret pipeline variable that receives the access token. The variable is secret, so later steps map it with `env:` under whatever name the tool expects. The name may contain letters, digits, `.` and `_`, and must not start with the Azure DevOps reserved prefixes endpoint, input, secret, path or securefile."
+    },
+    {
+      "name": "printTokenHashes",
+      "type": "boolean",
+      "label": "Print SHA256 token hashes to logs",
+      "defaultValue": "false",
+      "required": false,
+      "helpMarkDown": "When enabled, prints the SHA256 hash of the issued access token."
+    }
+  ],
+  "execution": {
+    "Node20_1": {
+      "target": "dist/AzureScopedAccessToken/AzureScopedAccessTokenV1/src/index.js"
+    }
+  },
+  "minimumAgentVersion": "3.225.0"
+}

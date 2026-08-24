@@ -1,82 +1,140 @@
 # Azure Federated Auth Azure DevOps Extension
 
-Azure DevOps extension containing the `AzureFederatedAuth` task.
+Azure DevOps extension containing three workload identity federation tasks. Each one turns an OIDC
+token issued for an AzureRM service connection into credentials for a different consumer, and each
+one requests its own OIDC token, so they are independent and can be used in any combination.
 
-## Task versions
-
-| Version | Scope |
+| Task | Purpose |
 | --- | --- |
-| `AzureFederatedAuth@1` | Azure only. Frozen; no further changes. |
-| `AzureFederatedAuth@2` | Everything in `@1`, plus optional Google Cloud workload identity federation. |
+| `AzureFederatedAuth@2` | ARM OIDC token and the connection's tenant and client id |
+| `AzureScopedAccessToken@1` | Microsoft Entra access token for a requested resource |
+| `GoogleFederatedAuth@1` | Google Cloud access token through workload identity federation |
 
-All `@1` inputs behave identically in `@2`, so migrating is a matter of changing `@1` to `@2`.
+`AzureFederatedAuth@1` is the Azure-only predecessor of `@2`. It is frozen and receives no further
+changes.
 
-## Task
+All three tasks require `System.AccessToken` to be available to the job.
 
-The AzureFederatedAuth task requests an OIDC token for a selected AzureRM service connection and
-sets pipeline variables for downstream tasks. It can be directly used by Terraform and other tools
-supporting OIDC-based authentication with Azure.
+## AzureFederatedAuth
 
-Version 2 additionally exchanges the same OIDC token at the Google Cloud Security Token Service,
-so a single job can authenticate Terraform's `azurerm` provider and backend *and* its `google`
-provider without any stored credentials.
+Requests an OIDC token and publishes it as the assertion that Terraform's `azurerm` provider and
+backend exchange on their own.
 
 ### Inputs
 
-- `serviceConnectionARM`: AzureRM service connection used for ARM OIDC (required)
-- `serviceConnectionGit`: AzureRM service connection used to acquire the Git access token; when set, `GIT_ACCESS_TOKEN` is set (optional)
-- `printTokenHashes`: Print SHA256 hashes of issued tokens to the log (optional)
-
-Google Cloud inputs (version 2 only, all optional):
-
-- `gcpWorkloadIdentityProvider`: Workload identity pool provider resource name,
-  `projects/<PROJECT_NUMBER>/locations/global/workloadIdentityPools/<POOL>/providers/<PROVIDER>`,
-  optionally prefixed with `//iam.googleapis.com/`. Use the project **number**, not the project ID.
-  Setting this input enables the Google Cloud token exchange; leaving it empty skips it entirely.
-- `gcpServiceAccountEmail`: Service account to impersonate. When empty, the federated token is used
-  directly (direct resource access).
-- `gcpProjectId`: Default project, set as `GOOGLE_CLOUD_PROJECT` and `CLOUDSDK_CORE_PROJECT`.
-- `gcpRegion`: Default region, set as `GOOGLE_REGION`.
-- `gcpScopes`: OAuth scopes, whitespace or comma separated. Defaults to
-  `https://www.googleapis.com/auth/cloud-platform`.
-- `gcpAccessTokenVariable`: Name of the secret variable that receives the access token. Defaults to
-  `GOOGLE_OAUTH_ACCESS_TOKEN`. The name may contain letters, digits, `.` and `_`, and must not start
-  with the reserved prefixes `endpoint`, `input`, `secret`, `path` or `securefile`.
-- `gcpTokenLifetimeSeconds`: Lifetime of the impersonated token. Defaults to the API default of
-  3600.
-- `gcpStsTokenUrl`: Security Token Service endpoint. Change only to target a regional endpoint.
-- `printOidcClaims`: Print the `aud` and `exp` claims of the OIDC token.
+- `serviceConnection`: AzureRM service connection used for ARM OIDC (required)
+- `printTokenHashes`: Print the SHA256 hash of the issued token to the log (optional)
 
 ### Pipeline variables set
 
 - `ARM_OIDC_TOKEN` (secret)
 - `ARM_TENANT_ID`
 - `ARM_CLIENT_ID`
-- `GIT_ACCESS_TOKEN` (secret, optional)
 
-Version 2, when `gcpWorkloadIdentityProvider` is set:
+## AzureScopedAccessToken
 
-- the variable named by `gcpAccessTokenVariable` (secret), by default `GOOGLE_OAUTH_ACCESS_TOKEN`.
-  Being secret, it is mapped with `env:` under the name the consuming tool expects:
-  `GOOGLE_OAUTH_ACCESS_TOKEN` for the Terraform `google` / `google-beta` provider,
-  `CLOUDSDK_AUTH_ACCESS_TOKEN` for `gcloud`.
-- `GOOGLE_CLOUD_PROJECT`, `CLOUDSDK_CORE_PROJECT` (when `gcpProjectId` is set)
+Exchanges the OIDC token for a Microsoft Entra access token, for consumers that cannot perform the
+exchange themselves. The identity is the app registration behind the service connection, and it
+needs access to the requested resource.
+
+### Inputs
+
+- `serviceConnection`: AzureRM service connection used for the OIDC token (required)
+- `scope`: Resource scope of the token, for example `https://graph.microsoft.com/.default`. The
+  client credentials flow issues application scopes, so the value ends with `/.default` (required)
+- `accessTokenVariable`: Name of the secret variable that receives the token. The name may contain
+  letters, digits, `.` and `_`, and must not start with the reserved prefixes `endpoint`, `input`,
+  `secret`, `path` or `securefile` (required)
+- `printTokenHashes`: Print the SHA256 hash of the issued token to the log (optional)
+
+### Pipeline variables set
+
+- the variable named by `accessTokenVariable` (secret)
+
+### Azure DevOps Git access token
+
+Cloning an Azure Repos repository is the case worth spelling out. The Azure DevOps resource ID is
+`499b84ac-1321-427f-aa17-267ca6975798` - the same ID that
+`az account get-access-token --resource` takes - so the scope is that GUID with the `/.default`
+suffix. The identity behind the service connection needs access to the repository, granted like any
+other Azure DevOps user or service principal.
+
+```yaml
+- task: AzureScopedAccessToken@1
+  inputs:
+    serviceConnection: my-arm-connection
+    scope: 499b84ac-1321-427f-aa17-267ca6975798/.default
+    accessTokenVariable: GIT_ACCESS_TOKEN
+
+- script: |
+    git -c http.extraheader="AUTHORIZATION: bearer $GIT_ACCESS_TOKEN" \
+      clone https://dev.azure.com/my-org/my-project/_git/my-repo
+  env:
+    GIT_ACCESS_TOKEN: $(GIT_ACCESS_TOKEN)
+```
+
+`git` takes the token as a bearer header rather than as a credential. For repeated Git commands the
+same header goes into the configuration once:
+
+```bash
+git config --global http.https://dev.azure.com/my-org/.extraheader "AUTHORIZATION: bearer $GIT_ACCESS_TOKEN"
+```
+
+## GoogleFederatedAuth
+
+Exchanges the OIDC token at the Google Cloud Security Token Service, optionally impersonating a
+service account. The AzureRM service connection here is the OIDC issuer that the Google workload
+identity provider trusts, not a Google Cloud credential.
+
+A configured Google Cloud workload identity pool, OIDC provider and IAM binding are a prerequisite.
+That setup is out of scope for this repository. `printOidcClaims` prints the `aud` value the
+provider's `--allowed-audiences` has to be configured with.
+
+### Inputs
+
+- `serviceConnection`: AzureRM service connection used for the OIDC token (required)
+- `gcpWorkloadIdentityProvider`: Workload identity pool provider resource name,
+  `projects/<PROJECT_NUMBER>/locations/global/workloadIdentityPools/<POOL>/providers/<PROVIDER>`,
+  optionally prefixed with `//iam.googleapis.com/`. Use the project **number**, not the project ID
+  (required)
+- `gcpServiceAccountEmail`: Service account to impersonate. When empty, the federated token is used
+  directly (direct resource access).
+- `gcpProjectId`: Default project, set as `GOOGLE_CLOUD_PROJECT`.
+- `gcpRegion`: Default region, set as `GOOGLE_REGION`.
+- `gcpScopes`: OAuth scopes, whitespace or comma separated. Defaults to
+  `https://www.googleapis.com/auth/cloud-platform`.
+- `gcpAccessTokenVariable`: Name of the secret variable that receives the access token. Defaults to
+  `GOOGLE_OAUTH_ACCESS_TOKEN`, and follows the same naming rules as `accessTokenVariable` above.
+- `gcpTokenLifetimeSeconds`: Lifetime of the impersonated token. Defaults to the API default of
+  3600.
+- `gcpStsTokenUrl`: Security Token Service endpoint. Change only to target a regional endpoint.
+- `printOidcClaims`: Print the `aud` and `exp` claims of the OIDC token.
+- `printTokenHashes`: Print the SHA256 hash of the issued token to the log.
+
+### Pipeline variables set
+
+- the variable named by `gcpAccessTokenVariable` (secret), by default `GOOGLE_OAUTH_ACCESS_TOKEN`
+- `GOOGLE_CLOUD_PROJECT` (when `gcpProjectId` is set) - read by the Terraform `google` provider and
+  by the Google Cloud client libraries as the default project
 - `GOOGLE_REGION` (when `gcpRegion` is set)
 - `GCP_ACCESS_TOKEN_EXPIRY` - ISO 8601 expiry of the Google Cloud access token
 
-A configured Google Cloud workload identity pool, OIDC provider and IAM binding are a prerequisite
-for the version 2 inputs. That setup is out of scope for this repository. `printOidcClaims` prints
-the `aud` value the provider's `--allowed-audiences` has to be configured with.
+`gcloud` reads its token and project from `CLOUDSDK_AUTH_ACCESS_TOKEN` and `CLOUDSDK_CORE_PROJECT`;
+map them in the step that runs it.
 
 ## Terraform usage
 
-The following example shows a Terraform job that uses the AzureFederatedAuth task to authenticate
-both the `azurerm` and `google` providers with a single AzureRM service connection.
+The following example authenticates both the `azurerm` and `google` providers from a single AzureRM
+service connection.
 
 ```yaml
 - task: AzureFederatedAuth@2
   inputs:
-    serviceConnectionARM: my-arm-connection
+    serviceConnection: my-arm-connection
+
+- task: GoogleFederatedAuth@1
+  inputs:
+    serviceConnection: my-arm-connection
     gcpWorkloadIdentityProvider: projects/123456789/locations/global/workloadIdentityPools/azure-devops/providers/azure-devops-oidc
     gcpServiceAccountEmail: terraform@my-project.iam.gserviceaccount.com
     gcpProjectId: my-project
@@ -91,9 +149,27 @@ both the `azurerm` and `google` providers with a single AzureRM service connecti
 ```
 
 > **Note**: The token variables are secret, so Azure DevOps does not map them into the environment of
-> later steps automatically - pass them explicitly with `env:`, exactly as `ARM_OIDC_TOKEN` already
-> requires. Non-secret variables such as `GOOGLE_CLOUD_PROJECT` and `GOOGLE_REGION` need no mapping,
-> and supply the provider's `project` and `region` when the provider block leaves them unset.
+> later steps automatically - pass them explicitly with `env:`. Non-secret variables such as
+> `GOOGLE_CLOUD_PROJECT` and `GOOGLE_REGION` need no mapping, and supply the provider's `project`
+> and `region` when the provider block leaves them unset.
+
+## Repository layout
+
+```
+task/
+  shared/                       sources imported by more than one task
+  AzureFederatedAuth/
+    AzureFederatedAuthV1/
+    AzureFederatedAuthV2/
+  AzureScopedAccessToken/
+    AzureScopedAccessTokenV1/
+  GoogleFederatedAuth/
+    GoogleFederatedAuthV1/
+```
+
+Each task version folder is self-contained once built: its own `task.json`, `package.json`,
+`node_modules`, `icon.png` and `dist`. The shared sources are compiled into every task's own `dist`,
+which is why the execution targets are nested paths.
 
 ## Build
 
@@ -117,9 +193,10 @@ npm run bump-version -- -c task-v2 patch
 npm run bump-version -- --component task-v2,extension minor
 ```
 
-Components are `extension`, `task-v1` and `task-v2`; omitting the flag bumps all three. The release
-type defaults to `patch`. A task's Major is never changed by the script - it is the task's public
-contract (`AzureFederatedAuth@1`, `@2`) - so a `major` release type gives tasks a minor bump.
+Components are `extension`, `task-v1`, `task-v2`, `scoped-v1` and `google-v1`; omitting the flag
+bumps all of them. The release type defaults to `patch`. A task's Major is never changed by the
+script - it is the task's public contract (`AzureFederatedAuth@2`, `AzureScopedAccessToken@1`) - so
+a `major` release type gives tasks a minor bump.
 
 ## License
 

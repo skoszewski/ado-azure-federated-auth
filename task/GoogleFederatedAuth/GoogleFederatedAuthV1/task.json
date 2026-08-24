@@ -1,0 +1,112 @@
+{
+  "$schema": "https://raw.githubusercontent.com/Microsoft/azure-pipelines-task-lib/master/tasks.schema.json",
+  "id": "a26a9303-6dc0-435c-b383-7c72a46b5c73",
+  "name": "GoogleFederatedAuth",
+  "friendlyName": "Google Federated Auth",
+  "description": "Exchanges a federated OIDC token for a Google Cloud access token and sets the Google Cloud variables.",
+  "helpMarkDown": "For details, see: https://github.com/skoszewski/ado-azure-federated-auth.git",
+  "category": "Deploy",
+  "author": "Slawomir Koszewski",
+  "version": {
+    "Major": 1,
+    "Minor": 0,
+    "Patch": 0
+  },
+  "instanceNameFormat": "Configure Google Cloud auth: $(gcpServiceAccountEmail)",
+  "inputs": [
+    {
+      "name": "serviceConnection",
+      "type": "connectedService:AzureRM",
+      "label": "Azure Resource Manager service connection",
+      "defaultValue": "",
+      "required": true,
+      "helpMarkDown": "AzureRM service connection used to request the OIDC token. It is the OIDC issuer trusted by the Google workload identity provider, not a Google Cloud credential. Requires System.AccessToken to be available to the job."
+    },
+    {
+      "name": "gcpWorkloadIdentityProvider",
+      "type": "string",
+      "label": "Workload identity provider",
+      "defaultValue": "",
+      "required": true,
+      "helpMarkDown": "Full resource name of the Google Cloud workload identity pool provider: `projects/<PROJECT_NUMBER>/locations/global/workloadIdentityPools/<POOL>/providers/<PROVIDER>`, optionally prefixed with `//iam.googleapis.com/`. Use the project **number**, not the project ID."
+    },
+    {
+      "name": "gcpServiceAccountEmail",
+      "type": "string",
+      "label": "Service account to impersonate",
+      "defaultValue": "",
+      "required": false,
+      "helpMarkDown": "Optional service account email. When set, the federated token is used to impersonate this service account and the impersonated access token is the one handed to the pipeline. Requires roles/iam.workloadIdentityUser on the service account. When empty, the federated token is used directly (direct resource access)."
+    },
+    {
+      "name": "gcpProjectId",
+      "type": "string",
+      "label": "Project ID",
+      "defaultValue": "",
+      "required": false,
+      "helpMarkDown": "Optional Google Cloud project ID. When set, the non-secret variable GOOGLE_CLOUD_PROJECT is set, which the Terraform google provider and the Google Cloud client libraries read as the default project."
+    },
+    {
+      "name": "gcpRegion",
+      "type": "string",
+      "label": "Region",
+      "defaultValue": "",
+      "required": false,
+      "helpMarkDown": "Optional default region. When set, the non-secret variable GOOGLE_REGION is set, which the Terraform google provider reads as its default region."
+    },
+    {
+      "name": "gcpScopes",
+      "type": "string",
+      "label": "OAuth scopes",
+      "defaultValue": "https://www.googleapis.com/auth/cloud-platform",
+      "required": false,
+      "helpMarkDown": "Whitespace or comma separated OAuth scopes for the issued access token. Defaults to https://www.googleapis.com/auth/cloud-platform."
+    },
+    {
+      "name": "gcpAccessTokenVariable",
+      "type": "string",
+      "label": "Access token variable name",
+      "defaultValue": "GOOGLE_OAUTH_ACCESS_TOKEN",
+      "required": false,
+      "helpMarkDown": "Name of the secret pipeline variable that receives the Google Cloud access token. Defaults to GOOGLE_OAUTH_ACCESS_TOKEN. The variable is secret, so later steps map it with `env:` under whatever name the tool expects, for example CLOUDSDK_AUTH_ACCESS_TOKEN for gcloud. The name may contain letters, digits, `.` and `_`, and must not start with the Azure DevOps reserved prefixes endpoint, input, secret, path or securefile."
+    },
+    {
+      "name": "gcpTokenLifetimeSeconds",
+      "type": "string",
+      "label": "Token lifetime (seconds)",
+      "defaultValue": "",
+      "required": false,
+      "helpMarkDown": "Optional lifetime of the impersonated access token, in seconds. Applies only when a service account is impersonated. Leave empty for the API default of 3600. Values above 3600 require the service account to be covered by the constraints/iam.allowServiceAccountCredentialLifetimeExtension organization policy (maximum 43200)."
+    },
+    {
+      "name": "gcpStsTokenUrl",
+      "type": "string",
+      "label": "Security Token Service URL",
+      "defaultValue": "https://sts.googleapis.com/v1/token",
+      "required": false,
+      "helpMarkDown": "Security Token Service endpoint used for the token exchange. Change this only to target a regional endpoint, for example https://sts.europe-west1.rep.googleapis.com/v1/token."
+    },
+    {
+      "name": "printOidcClaims",
+      "type": "boolean",
+      "label": "Print OIDC token claims to logs",
+      "defaultValue": "false",
+      "required": false,
+      "helpMarkDown": "When enabled, prints the aud and exp claims of the Azure DevOps OIDC token. Use the audience to configure the Google workload identity provider's --allowed-audiences."
+    },
+    {
+      "name": "printTokenHashes",
+      "type": "boolean",
+      "label": "Print SHA256 token hashes to logs",
+      "defaultValue": "false",
+      "required": false,
+      "helpMarkDown": "When enabled, prints the SHA256 hash of the issued Google Cloud access token."
+    }
+  ],
+  "execution": {
+    "Node20_1": {
+      "target": "dist/GoogleFederatedAuth/GoogleFederatedAuthV1/src/index.js"
+    }
+  },
+  "minimumAgentVersion": "3.225.0"
+}

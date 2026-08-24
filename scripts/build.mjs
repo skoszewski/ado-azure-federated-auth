@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import { existsSync, mkdirSync } from 'node:fs';
 import { join } from 'node:path';
-import { BUILD_DIR, ROOT_DIR, TASK_VERSIONS } from './paths.mjs';
+import { BUILD_DIR, ROOT_DIR, SHARED_DIR, TASK_VERSIONS } from './paths.mjs';
 import { run } from './run.mjs';
 import { cleanTask, fail, readJson } from './util.mjs';
 
@@ -25,6 +25,8 @@ if (existsSync(join(ROOT_DIR, 'package-lock.json'))) {
 } else {
   run('npm', ['install', '--no-audit', '--fund=false']);
 }
+
+run('npm', ['install', '--prefix', SHARED_DIR, '--no-audit', '--fund=false']);
 
 for (const task of TASK_VERSIONS) {
   cleanTask(task);

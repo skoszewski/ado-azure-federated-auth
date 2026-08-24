@@ -2,14 +2,14 @@
   "manifestVersion": 1,
   "id": "azure-federated-auth",
   "name": "Azure Federated Auth",
-  "version": "2.0.2",
+  "version": "2.0.3",
   "publisher": "skoszewski-lab",
   "targets": [
     {
       "id": "Microsoft.VisualStudio.Services"
     }
   ],
-  "description": "Azure DevOps task for AzureRM workload identity federation token setup, with optional Google Cloud workload identity federation.",
+  "description": "Azure DevOps tasks for workload identity federation: ARM OIDC token, Microsoft Entra scoped access tokens and Google Cloud access tokens.",
   "content": {
     "details": {
       "path": "overview.md"
@@ -25,6 +25,12 @@
   "files": [
     {
       "path": "task/AzureFederatedAuth"
+    },
+    {
+      "path": "task/AzureScopedAccessToken"
+    },
+    {
+      "path": "task/GoogleFederatedAuth"
     },
     {
       "path": "images",
@@ -44,6 +50,26 @@
       ],
       "properties": {
         "name": "task/AzureFederatedAuth"
+      }
+    },
+    {
+      "id": "c51738af-8d96-4de3-82ab-e4c60612c5c9",
+      "type": "ms.vss-distributed-task.task",
+      "targets": [
+        "ms.vss-distributed-task.tasks"
+      ],
+      "properties": {
+        "name": "task/AzureScopedAccessToken"
+      }
+    },
+    {
+      "id": "8566f5b9-3f14-429d-9697-35202ef27012",
+      "type": "ms.vss-distributed-task.task",
+      "targets": [
+        "ms.vss-distributed-task.tasks"
+      ],
+      "properties": {
+        "name": "task/GoogleFederatedAuth"
       }
     }
   ]

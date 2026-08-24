@@ -1,47 +1,40 @@
 # Azure Federated Auth
 
-`AzureFederatedAuth` requests an OIDC token for a selected AzureRM service connection and sets
-pipeline variables for downstream tasks. It can be directly used by Terraform and other tools
-supporting OIDC-based authentication with Azure.
+Three workload identity federation tasks. Each turns an OIDC token issued for an AzureRM service
+connection into credentials for a different consumer, without any stored secret. Each task requests
+its own OIDC token, so they are independent and can be combined in one job - for example to
+authenticate Terraform's `azurerm` provider and backend and its `google` provider at once.
 
-Version 2 additionally exchanges the same OIDC token at the Google Cloud Security Token Service,
-so one job can authenticate Terraform's `azurerm` provider and backend and its `google` provider
-without any stored credentials.
+All three require `System.AccessToken` to be available to the job.
 
-## Versions
+## AzureFederatedAuth@2
 
-- `AzureFederatedAuth@1`: Azure only. Frozen.
-- `AzureFederatedAuth@2`: everything in `@1`, plus optional Google Cloud workload identity
-  federation. Migrating is a matter of changing `@1` to `@2`.
+Publishes the OIDC token as the assertion Terraform's `azurerm` provider exchanges on its own.
 
-## Inputs
+- inputs: `serviceConnection`, `printTokenHashes`
+- sets: `ARM_OIDC_TOKEN` (secret), `ARM_TENANT_ID`, `ARM_CLIENT_ID`
 
-- `serviceConnectionARM`: AzureRM service connection used for ARM OIDC (required)
-- `serviceConnectionGit`: AzureRM service connection used to acquire the Git access token; when set, `GIT_ACCESS_TOKEN` is set (optional)
-- `printTokenHashes`: Print SHA256 hashes of issued tokens to the log (optional)
+`AzureFederatedAuth@1` is the Azure-only predecessor. It is frozen.
 
-Google Cloud inputs (version 2 only, all optional):
+## AzureScopedAccessToken@1
 
-- `gcpWorkloadIdentityProvider`: workload identity pool provider resource name; setting it enables
-  the Google Cloud token exchange
-- `gcpServiceAccountEmail`: service account to impersonate
-- `gcpProjectId`, `gcpRegion`: defaults for the Terraform google provider and gcloud
-- `gcpScopes`, `gcpTokenLifetimeSeconds`, `gcpStsTokenUrl`: token exchange tuning
-- `gcpAccessTokenVariable`: name of the secret variable that receives the access token; defaults to
-  `GOOGLE_OAUTH_ACCESS_TOKEN`
-- `printOidcClaims`: print the OIDC token's `aud` and `exp` claims
+Exchanges the OIDC token for a Microsoft Entra access token for the requested resource, for
+consumers such as `git` that cannot perform the exchange themselves.
 
-## Pipeline variables set
+- inputs: `serviceConnection`, `scope`, `accessTokenVariable`, `printTokenHashes`
+- sets: the variable named by `accessTokenVariable` (secret)
 
-- `ARM_OIDC_TOKEN` (secret)
-- `ARM_TENANT_ID`
-- `ARM_CLIENT_ID`
-- `GIT_ACCESS_TOKEN` (secret, optional)
+## GoogleFederatedAuth@1
 
-Version 2, when `gcpWorkloadIdentityProvider` is set:
+Exchanges the OIDC token at the Google Cloud Security Token Service, optionally impersonating a
+service account. A configured workload identity pool, OIDC provider and IAM binding are a
+prerequisite.
 
-- the variable named by `gcpAccessTokenVariable` (secret), by default `GOOGLE_OAUTH_ACCESS_TOKEN`
-- `GOOGLE_CLOUD_PROJECT`, `CLOUDSDK_CORE_PROJECT`, `GOOGLE_REGION`
-- `GCP_ACCESS_TOKEN_EXPIRY`
+- inputs: `serviceConnection`, `gcpWorkloadIdentityProvider`, `gcpServiceAccountEmail`,
+  `gcpProjectId`, `gcpRegion`, `gcpScopes`, `gcpAccessTokenVariable`, `gcpTokenLifetimeSeconds`,
+  `gcpStsTokenUrl`, `printOidcClaims`, `printTokenHashes`
+- sets: the variable named by `gcpAccessTokenVariable`, by default `GOOGLE_OAUTH_ACCESS_TOKEN`
+  (secret), `GOOGLE_CLOUD_PROJECT`, `GOOGLE_REGION`, `GCP_ACCESS_TOKEN_EXPIRY`
 
-For a Terraform example, see the project README.
+Token variables are secret, so later steps map them with `env:` under the name the consuming tool
+expects. For examples, including the Azure DevOps Git access token, see the project README.
