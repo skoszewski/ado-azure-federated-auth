@@ -1,6 +1,6 @@
 **/node_modules
 **/dist
-task/AzureFederatedAuth/*/icon.png
+task/*/*/icon.png
 *.vsix
 build/
 .DS_Store
