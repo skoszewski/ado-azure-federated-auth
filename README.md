@@ -1,19 +1,21 @@
 # Azure Federated Auth Azure DevOps Extension
 
-Azure DevOps extension containing three workload identity federation tasks. Each one turns an OIDC
-token issued for an AzureRM service connection into credentials for a different consumer, and each
-one requests its own OIDC token, so they are independent and can be used in any combination.
+Azure DevOps extension containing three workload identity federation tasks and one helper. Each
+federation task turns an OIDC token issued for an AzureRM service connection into credentials for a
+different consumer, and each requests its own OIDC token, so they are independent and can be used in
+any combination.
 
 | Task | Purpose |
 | --- | --- |
 | `AzureFederatedAuth@2` | ARM OIDC token and the connection's tenant and client id |
 | `AzureScopedAccessToken@1` | Microsoft Entra access token for a requested resource |
 | `GoogleFederatedAuth@1` | Google Cloud access token through workload identity federation |
+| `CreateGitAskPassScript@1` | git credential helper that feeds an access token to git |
 
 `AzureFederatedAuth@1` is the Azure-only predecessor of `@2`. It is frozen and receives no further
 changes.
 
-All three tasks require `System.AccessToken` to be available to the job.
+The three federation tasks require `System.AccessToken` to be available to the job.
 
 ## AzureFederatedAuth
 
@@ -122,6 +124,52 @@ provider's `--allowed-audiences` has to be configured with.
 `gcloud` reads its token and project from `CLOUDSDK_AUTH_ACCESS_TOKEN` and `CLOUDSDK_CORE_PROJECT`;
 map them in the step that runs it.
 
+## CreateGitAskPassScript
+
+Writes a credential helper script and sets `GIT_ASKPASS` to its path. It is the first of the four
+strategies git uses to ask for usernames and passwords: the program named by `GIT_ASKPASS` is
+invoked with the prompt as its command-line argument and the answer is read from its standard
+output. The script here ignores the prompt and prints one environment variable, so the same value
+answers both the username and the password prompt, which is what Azure Repos expects - the username
+may be anything except an empty string.
+
+No token is written to disk or into a git configuration file; the step that runs git supplies the
+value with `env:`. `GIT_ASKPASS` is not secret, so later steps inherit it without mapping. On a
+Windows agent the script is a `.cmd` file; elsewhere it is a bash script with mode 700.
+
+### Inputs
+
+- `tokenEnvironmentVariable`: Name of the environment variable the script prints. Defaults to
+  `GIT_ACCESS_TOKEN` (optional)
+- `scriptPath`: Where to write the script. Defaults to `git-ask-pass` in `$(Pipeline.Workspace)`,
+  with a `.cmd` extension on Windows (optional)
+
+### Pipeline variables set
+
+- `GIT_ASKPASS` - path of the generated script
+
+### Usage with a federated token
+
+```yaml
+- task: AzureScopedAccessToken@1
+  inputs:
+    serviceConnection: my-arm-connection
+    scope: 499b84ac-1321-427f-aa17-267ca6975798/.default
+    accessTokenVariable: GIT_ACCESS_TOKEN
+
+- task: CreateGitAskPassScript@1
+
+- script: |
+    git clone https://dev.azure.com/my-org/my-project/_git/my-repo
+    git -C my-repo push
+  env:
+    GIT_ACCESS_TOKEN: $(GIT_ACCESS_TOKEN)
+```
+
+`GIT_ASKPASS` is an environment variable, so it applies to every git command in the step and to the
+git processes those commands start, where the `http.extraheader` form has to be repeated per
+command or written into the configuration.
+
 ## Terraform usage
 
 The following example authenticates both the `azurerm` and `google` providers from a single AzureRM
@@ -165,6 +213,8 @@ task/
     AzureScopedAccessTokenV1/
   GoogleFederatedAuth/
     GoogleFederatedAuthV1/
+  CreateGitAskPassScript/
+    CreateGitAskPassScriptV1/
 ```
 
 Each task version folder is self-contained once built: its own `task.json`, `package.json`,
@@ -193,8 +243,8 @@ npm run bump-version -- -c task-v2 patch
 npm run bump-version -- --component task-v2,extension minor
 ```
 
-Components are `extension`, `task-v1`, `task-v2`, `scoped-v1` and `google-v1`; omitting the flag
-bumps all of them. The release type defaults to `patch`. A task's Major is never changed by the
+Components are `extension`, `task-v1`, `task-v2`, `scoped-v1`, `askpass-v1` and `google-v1`; omitting
+the flag bumps all of them. The release type defaults to `patch`. A task's Major is never changed by the
 script - it is the task's public contract (`AzureFederatedAuth@2`, `AzureScopedAccessToken@1`) - so
 a `major` release type gives tasks a minor bump.
 

@@ -1,0 +1,14 @@
+{
+  "name": "create-git-ask-pass-script-task",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Azure DevOps task runtime dependencies for CreateGitAskPassScript (version 1).",
+  "license": "MIT",
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "azure-pipelines-task-lib": "^5.2.10"
+  }
+}

@@ -1,0 +1,40 @@
+{
+  "$schema": "https://raw.githubusercontent.com/Microsoft/azure-pipelines-task-lib/master/tasks.schema.json",
+  "id": "a210ff37-0531-490f-8b82-4d1391595963",
+  "name": "CreateGitAskPassScript",
+  "friendlyName": "Create Git Ask Pass Script",
+  "description": "Writes a git credential helper that reads an access token from the environment, and sets GIT_ASKPASS.",
+  "helpMarkDown": "For details, see: https://github.com/skoszewski/ado-azure-federated-auth.git",
+  "category": "Utility",
+  "author": "Slawomir Koszewski",
+  "version": {
+    "Major": 1,
+    "Minor": 0,
+    "Patch": 0
+  },
+  "instanceNameFormat": "Create git askpass script",
+  "inputs": [
+    {
+      "name": "tokenEnvironmentVariable",
+      "type": "string",
+      "label": "Token environment variable name",
+      "defaultValue": "GIT_ACCESS_TOKEN",
+      "required": false,
+      "helpMarkDown": "Name of the environment variable the generated script prints. The step that runs git maps the secret pipeline variable holding the token to this name with `env:`."
+    },
+    {
+      "name": "scriptPath",
+      "type": "string",
+      "label": "Script path",
+      "defaultValue": "",
+      "required": false,
+      "helpMarkDown": "Where to write the script. Defaults to git-ask-pass in $(Pipeline.Workspace), with a .cmd extension on Windows agents."
+    }
+  ],
+  "execution": {
+    "Node20_1": {
+      "target": "dist/index.js"
+    }
+  },
+  "minimumAgentVersion": "3.225.0"
+}

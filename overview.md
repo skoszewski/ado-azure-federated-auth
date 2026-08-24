@@ -1,11 +1,12 @@
 # Azure Federated Auth
 
-Three workload identity federation tasks. Each turns an OIDC token issued for an AzureRM service
-connection into credentials for a different consumer, without any stored secret. Each task requests
-its own OIDC token, so they are independent and can be combined in one job - for example to
-authenticate Terraform's `azurerm` provider and backend and its `google` provider at once.
+Three workload identity federation tasks and one helper. Each federation task turns an OIDC token
+issued for an AzureRM service connection into credentials for a different consumer, without any
+stored secret. Each requests its own OIDC token, so they are independent and can be combined in one
+job - for example to authenticate Terraform's `azurerm` provider and backend and its `google`
+provider at once.
 
-All three require `System.AccessToken` to be available to the job.
+The federation tasks require `System.AccessToken` to be available to the job.
 
 ## AzureFederatedAuth@2
 
@@ -35,6 +36,15 @@ prerequisite.
   `gcpStsTokenUrl`, `printOidcClaims`, `printTokenHashes`
 - sets: the variable named by `gcpAccessTokenVariable`, by default `GOOGLE_OAUTH_ACCESS_TOKEN`
   (secret), `GOOGLE_CLOUD_PROJECT`, `GOOGLE_REGION`, `GCP_ACCESS_TOKEN_EXPIRY`
+
+## CreateGitAskPassScript@1
+
+Writes a git credential helper that prints an access token from the environment, and points
+`GIT_ASKPASS` at it, so every git command in a step authenticates without a token in the git
+configuration.
+
+- inputs: `tokenEnvironmentVariable`, `scriptPath`
+- sets: `GIT_ASKPASS`
 
 Token variables are secret, so later steps map them with `env:` under the name the consuming tool
 expects. For examples, including the Azure DevOps Git access token, see the project README.

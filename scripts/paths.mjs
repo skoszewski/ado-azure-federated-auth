@@ -37,6 +37,12 @@ export const TASK_VERSIONS = [
     tsconfig: join(ROOT_DIR, 'tsconfig.scoped-v1.json')
   },
   {
+    name: 'CreateGitAskPassScriptV1',
+    component: 'askpass-v1',
+    dir: join(TASK_DIR, 'CreateGitAskPassScript', 'CreateGitAskPassScriptV1'),
+    tsconfig: join(ROOT_DIR, 'tsconfig.askpass-v1.json')
+  },
+  {
     name: 'GoogleFederatedAuthV1',
     component: 'google-v1',
     dir: join(TASK_DIR, 'GoogleFederatedAuth', 'GoogleFederatedAuthV1'),

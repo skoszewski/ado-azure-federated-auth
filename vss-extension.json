@@ -2,7 +2,7 @@
   "manifestVersion": 1,
   "id": "azure-federated-auth",
   "name": "Azure Federated Auth",
-  "version": "2.0.3",
+  "version": "2.0.4",
   "publisher": "skoszewski-lab",
   "targets": [
     {
@@ -28,6 +28,9 @@
     },
     {
       "path": "task/AzureScopedAccessToken"
+    },
+    {
+      "path": "task/CreateGitAskPassScript"
     },
     {
       "path": "task/GoogleFederatedAuth"
@@ -60,6 +63,16 @@
       ],
       "properties": {
         "name": "task/AzureScopedAccessToken"
+      }
+    },
+    {
+      "id": "cbb4acda-8cb3-434b-bee5-668f651b7315",
+      "type": "ms.vss-distributed-task.task",
+      "targets": [
+        "ms.vss-distributed-task.tasks"
+      ],
+      "properties": {
+        "name": "task/CreateGitAskPassScript"
       }
     },
     {

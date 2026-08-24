@@ -1,0 +1,8 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "task/CreateGitAskPassScript/CreateGitAskPassScriptV1/dist",
+    "rootDir": "task/CreateGitAskPassScript/CreateGitAskPassScriptV1/src"
+  },
+  "include": ["task/CreateGitAskPassScript/CreateGitAskPassScriptV1/src/**/*.ts"]
+}
