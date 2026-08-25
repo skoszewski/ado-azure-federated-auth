@@ -27,6 +27,7 @@ export function run(command, args, options = {}) {
   execFileSync(command, args, {
     cwd: options.cwd ?? ROOT_DIR,
     stdio: 'inherit',
-    env: childEnv()
+    env: childEnv(),
+    shell: process.platform === 'win32'
   });
 }
